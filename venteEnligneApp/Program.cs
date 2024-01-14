@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using venteEnligneApp.Models;
 using venteEnligneApp.Repositories;
@@ -11,6 +12,20 @@ builder.Services.AddDbContextPool<AppDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("AppDBConnection")));
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
+
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    // Default Password settings.
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+});
+
+builder.Services.AddTransient<SignInManager<IdentityUser>, SignInManager<IdentityUser>>();
+
 
 var app = builder.Build();
 
@@ -26,7 +41,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

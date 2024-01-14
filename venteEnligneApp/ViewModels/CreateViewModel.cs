@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using venteEnligneApp.Models;
 
-namespace venteEnligneApp.Models
+namespace venteEnligneApp.ViewModels
 {
-    public class Article
+    public class CreateViewModel
     {
         public int Id { get; set; }
 
@@ -14,7 +15,7 @@ namespace venteEnligneApp.Models
 
         [Required]
         [Display(Name = "Image :")]
-        public string Image { get; set; }
+        public IFormFile ImagePath { get; set; }
         public decimal Prix { get; set; }
         public string Marque { get; set; }
         public int? CategoryId { get; set; }

@@ -36,7 +36,7 @@ namespace venteEnligneApp.Migrations
                     Prix = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Marque = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
-                    StockQuantitie = table.Column<int>(type: "int", nullable: false)
+                    Quantite = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
