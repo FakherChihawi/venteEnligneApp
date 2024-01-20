@@ -10,5 +10,6 @@ namespace venteEnligneApp.Models
         }
         public DbSet<Article> Articles { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Commande> Commandes { get; set; }
     }
 }

@@ -1,13 +1,13 @@
 ﻿@model venteEnligneApp.ViewModels.CreateRoleViewModel
 @{
-    ViewBag.Title = "Create New Role";
+    ViewBag.Title = "Créer un nouveau Role";
 }
-<h1>Create New Role</h1>
+<h1>Créer un nouveau Role</h1>
 <form asp-action="CreateRole" method="post" class="mt-3">
     <div asp-validation-summary="All" class="text-danger"></div>
     <div class="form-group row">
 
-        <label asp-for="RoleName" class="col-sm-2-form-label"></label>
+        <label asp-for="RoleName" class="col-sm-2-form-label">Nom</label>
 
         <div class="col-sm-10">
 
@@ -21,7 +21,7 @@
 
             <button type="submit" class="btn btn-primary" style="width : auto">
 
-                Create Role
+                Créer un Role
             </button>
         </div>
     </div>

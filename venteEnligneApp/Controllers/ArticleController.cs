@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Hosting.Internal;
@@ -16,28 +18,67 @@ namespace venteEnligneApp.Controllers
 
         readonly IArticleRepository ArticleRepository;
         readonly ICategoryRepository CategoryRepository;
+        readonly ICommandeRepository CommandeRepository;
         private readonly IWebHostEnvironment hostingEnvironment;
+        private readonly UserManager<IdentityUser> userManager;
+        private readonly SignInManager<IdentityUser> signInManager;
 
 
-        public ArticleController(IArticleRepository articleRepository, ICategoryRepository categoryRepository, IWebHostEnvironment hostingEnvironment)
+        public ArticleController(IArticleRepository articleRepository, ICategoryRepository categoryRepository, ICommandeRepository commandeRepository,
+            IWebHostEnvironment hostingEnvironment, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
         {
             ArticleRepository = articleRepository;
             CategoryRepository = categoryRepository;
+            CommandeRepository = commandeRepository;
             this.hostingEnvironment = hostingEnvironment;
+            this.userManager = userManager;
+            this.signInManager = signInManager;
         }
 
-        // GET: ArticleController
+        // Assuming you have a method in your service to check if the user has a command for a specific article
+        private bool UserHasCommandForArticle(string userId, int articleId)
+        {
+            // Implement your logic to check if the user has a command for the given article
+            // You might query your database or perform any necessary checks
+            // Example: Check if there's a command where UserId equals the current user's ID and ArticleId equals the provided articleId
+
+            // For illustration purposes, a simple example is shown here:
+            // Replace this with your actual logic
+            var hasCommand = CommandeRepository.UserHasCommand(userId, articleId);
+            return hasCommand;
+        }
+
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             var articles = await ArticleRepository.GetAllArticles();
+            var categories = await CategoryRepository.GetAllCategories();
+            ViewBag.Categories = new SelectList(categories, "Id", "Nom");
+
+            // Assuming you have a method to get the current user's ID
+            var user = await userManager.FindByNameAsync(User.Identity.Name);
+            var currentUserId = user?.Id;
+
+            // Pass a dictionary of article IDs and corresponding hasCommand values to the view
+            var hasCommandDictionary = articles.ToDictionary(article => article.Id, article => UserHasCommandForArticle(currentUserId, article.Id));
+
+            ViewBag.HasCommandDictionary = hasCommandDictionary;
+
             return View(articles);
         }
+
+        
+
 
         // GET: ArticleController/Details/5
         public async Task<IActionResult> Details(int id)
         {
             var article = await ArticleRepository.GetArticleById(id);
+
+            var user = await userManager.FindByNameAsync(User.Identity.Name);
+            var userLoggedInId = user?.Id;
+
+            ViewBag.HasCommand = UserHasCommandForArticle(userLoggedInId, article.Id);
             return View(article);
         }
 
@@ -64,9 +105,6 @@ namespace venteEnligneApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateViewModel model)
         {
-            //if (ModelState.IsValid)
-            //{
-            
 
             Article newArticle = new Article
 
@@ -74,19 +112,19 @@ namespace venteEnligneApp.Controllers
                 Nom = model.Nom,
                 Description = model.Description,
                 Image = ProcessUploadedFile(model),
-            Prix = model.Prix,
-                    Marque = model.Marque,
-                    CategoryId = model.CategoryId,
-                    Categorie = await CategoryRepository.GetCategoryById((int)model.CategoryId),
-                    Quantite = model.Quantite,
-                };
-                await ArticleRepository.AddArticle(newArticle);
-                return RedirectToAction("details", new { id = newArticle.Id });
-           /* }
-            // If the model state is not valid, reload the categories and return to the create view
-            var categories = await CategoryRepository.GetAllCategories();
-            ViewBag.Categories = new SelectList(categories, "Id", "Nom", model.CategoryId);
-            return View();*/
+                Prix = model.Prix,
+                Marque = model.Marque,
+                CategoryId = model.CategoryId,
+                Categorie = await CategoryRepository.GetCategoryById((int)model.CategoryId),
+                Quantite = model.Quantite,
+            };
+            await ArticleRepository.AddArticle(newArticle);
+            return RedirectToAction("details", new { id = newArticle.Id });
+            /*
+              // If the model state is not valid, reload the categories and return to the create view
+              var categories = await CategoryRepository.GetAllCategories();
+              ViewBag.Categories = new SelectList(categories, "Id", "Nom", model.CategoryId);
+              return View();*/
         }
 
         // GET: ArticleController/Edit/5
@@ -125,10 +163,6 @@ namespace venteEnligneApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(EditViewModel model)
         {
-            // Check if the provided data is valid, if not rerender the edit view
-            // so the user can correct and resubmit the edit form
-            if (ModelState.IsValid)
-            {
                 // Retrieve the product being edited from the database
                 var article = await ArticleRepository.GetArticleById(model.Id);
                 // Update the product object with the data in the model object
@@ -137,7 +171,6 @@ namespace venteEnligneApp.Controllers
                 article.Prix = model.Prix;
                 article.Marque = model.Marque;
                 article.CategoryId = model.CategoryId;
-                article.Categorie = await CategoryRepository.GetCategoryById((int)model.CategoryId);
                 article.Quantite = model.Quantite;
                 // If the user wants to change the photo, a new photo will be
                 // uploaded and the Photo property on the model object receives
@@ -167,8 +200,6 @@ namespace venteEnligneApp.Controllers
                 else
                     return NotFound();
 
-            }
-            return View(model);
         }
 
         [NonAction]
@@ -211,5 +242,92 @@ namespace venteEnligneApp.Controllers
             }
         }
 
+        public async Task<ActionResult> Search(string marque, int categoryId)
+
+        {
+            var articles = await ArticleRepository.GetAllArticles();
+            if (!string.IsNullOrEmpty(marque) && categoryId != null)
+            {
+                articles = await ArticleRepository.GetArticlesByMarqueAndCategory(marque, categoryId);
+            }
+            else if (categoryId == null) {
+                articles = await ArticleRepository.GetArticlesByMarque(marque);
+            }
+            if (string.IsNullOrEmpty(marque)){
+                articles = await ArticleRepository.GetArticlesByCategory(categoryId);
+            }
+
+            var user = await userManager.FindByNameAsync(User.Identity.Name);
+            var userLoggedInId = user?.Id;
+
+            var categories = await CategoryRepository.GetAllCategories();
+            ViewBag.Categories = new SelectList(categories, "Id", "Nom");
+
+            // Pass a dictionary of article IDs and corresponding hasCommand values to the view
+            var hasCommandDictionary = articles.ToDictionary(article => article.Id, article => UserHasCommandForArticle(userLoggedInId, article.Id));
+
+            ViewBag.HasCommandDictionary = hasCommandDictionary;
+
+            return View("Index", articles);
+        }
+
+        public async Task<ActionResult> Commander(int id)
+        {
+            var user = await userManager.FindByNameAsync(User.Identity.Name);
+            var userLoggedInId = user?.Id;
+
+            if(id == 0) {
+                return NotFound();
+            }
+
+            Commande commande = new Commande
+            {
+                ArticleId = id,
+                UserId = userLoggedInId
+            };
+
+            await CommandeRepository.AddCommande(commande);
+
+            var articles = await ArticleRepository.GetAllArticles();
+            var categories = await CategoryRepository.GetAllCategories();
+            ViewBag.Categories = new SelectList(categories, "Id", "Nom");
+
+            // Pass a dictionary of article IDs and corresponding hasCommand values to the view
+            var hasCommandDictionary = articles.ToDictionary(article => article.Id, article => UserHasCommandForArticle(userLoggedInId, article.Id));
+
+            ViewBag.HasCommandDictionary = hasCommandDictionary;
+
+            return View("Index", articles);
+        }
+
+
+        public async Task<ActionResult> AnnulerCommande(int id)
+        {
+            var user = await userManager.FindByNameAsync(User.Identity.Name);
+            var userLoggedInId = user?.Id;
+
+            if (id == 0)
+            {
+                return NotFound();
+            }
+
+            var commandes = await CommandeRepository.GetCommandeByUserAndArticle(userLoggedInId, id);
+
+            foreach (var item in commandes)
+            {
+                await CommandeRepository.DeleteCommande(item.Id);
+            }
+
+            var articles = await ArticleRepository.GetAllArticles();
+            var categories = await CategoryRepository.GetAllCategories();
+            ViewBag.Categories = new SelectList(categories, "Id", "Nom");
+
+            // Pass a dictionary of article IDs and corresponding hasCommand values to the view
+            var hasCommandDictionary = articles.ToDictionary(article => article.Id, article => UserHasCommandForArticle(userLoggedInId, article.Id));
+
+            ViewBag.HasCommandDictionary = hasCommandDictionary;
+
+            return View("Index", articles);
+        }
     }
 }

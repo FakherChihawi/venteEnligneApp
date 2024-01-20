@@ -1,5 +1,6 @@
 ﻿@model venteEnligneApp.ViewModels.EditViewModel
-
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
 @{
     ViewData["Title"] = "Edit";
     // Get the full path of the existing product photo for display
@@ -66,7 +67,7 @@
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Retour à la liste</a>
 </div>
 
 @section Scripts {

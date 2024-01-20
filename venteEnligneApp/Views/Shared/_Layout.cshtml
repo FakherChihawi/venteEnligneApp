@@ -35,7 +35,11 @@
 
                             @if (User.IsInRole("Admin")){
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Category" asp-action="Index">Categorie</a>
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Category" asp-action="Index">Categories</a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Command" asp-action="Index">Commandes</a>
                                 </li>
 
                                 <li class="nav-item dropdown">
@@ -45,41 +49,41 @@
 
                                     <div class="dropdown-menu">
                                         <a class="dropdown-item" asp-area="" asp-controller="Admin" asp-action="CreateRole">
-                                            Create Role
+                                            Créer un rôle
                                         </a>
                                         <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" asp-area="" asp-controller="Admin" asp-action="ListRoles">
-                                            List  Roles
+                                            Liste des rôles
                                         </a>
                                     </div>
                                 </li>
                             }
 
-                            <li class="nav-item" >
+                            <li class="nav-item  ml-auto">
 
                                 <form method="post" asp-controller="account" asp-action="logout">
                                     <button type="submit" style="width:auto"
                                             class="nav-link btn btn-link py-0">
 
-                                        Logout @User.Identity.Name
+                                        Déconnexion @User.Identity.Name
                                     </button>
                                 </form>
                             </li>
                         }
                         else
                         {
-                            <li class="nav-item">
+                            <li class="nav-item  ml-auto">
 
                                 <a class="nav-link" asp-controller="Account" asp-action="Register">
 
-                                    Register
+                                    Inscrire
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item ml-auto">
 
                                 <a class="nav-link" asp-controller="Account" asp-action="Login">
 
-                                    Login
+                                    Se connecter
                                 </a>
                             </li>
                         }

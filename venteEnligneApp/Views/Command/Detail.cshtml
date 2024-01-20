@@ -1,0 +1,30 @@
+﻿@model venteEnligneApp.ViewModels.CommandDetailViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>La commande</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            L'article :
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ArticleName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.UserName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.UserName)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="ValiderCommande" asp-route-id="@Model?.CommandId">Valider</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

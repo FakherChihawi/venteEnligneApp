@@ -1,0 +1,38 @@
+﻿@model IEnumerable<venteEnligneApp.ViewModels.CommandDetailViewModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Listes des commandes </h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.UserName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ArticleName)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UserName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ArticleName)
+                </td>
+                <td>
+                    <a asp-action="ValiderCommande" asp-route-id="@item.CommandId">Valider</a>
+                    <a asp-action="Details" asp-route-id="@item.CommandId">Detail</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
